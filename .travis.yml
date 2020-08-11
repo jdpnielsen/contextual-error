@@ -1,0 +1,9 @@
+sudo: false
+language: node_js
+node_js:
+  - '12'
+  - '14'
+# keep the npm cache to speed up installs
+cache:
+  directories:
+    - '$HOME/.npm'
