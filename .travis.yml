@@ -1,4 +1,3 @@
-sudo: false
 language: node_js
 node_js:
 - '12'
@@ -6,12 +5,3 @@ node_js:
 cache:
   directories:
   - "$HOME/.npm"
-deploy:
-  provider: npm
-  email: jdpnielsen@gmail.com
-  api_key:
-    secure: OLrIf5PtbEFH5yQAzsphvwmyiZoBnyhJ/bNGUvjVY4DkQDOyLNo1hQOfdH+M61KR/sSZNsJ2q541iDWJjLQEz6xn/wJRF82fu7fbzenRFLZ8MroaQxHPrWXvQjQUSiV0QjRPQpie8+sme2MVS5tAETgwOSnndXDSXwEiIZJzg3FwRWJDB+AT2dSrDpSxD3uL/EBoeivHonukB5eH45KCfGpk8wHJYhTHoDmvQayWgnlnvb/hdnYBRD1tPCJtwLueiXWENggV9va9i9Dj3jbK1fZebavwiVhtyh/r43Mm5xsnwftNAJ7gLEkDFM9GVCVvTwZrPfnnF/L0/OY5nhCDvy1UGISaTofeX6C9Th2lIj45zB6A6AmQm+/OJypmotY/W0C6dcVKuRyPoYKaoq+gEgj3N+57e9HzjPbdOXq2iXq/9LU1IUbfiN9uPfcK2ye3uI89a+MTyixYsencbiXnVPutnKy8JeDh3TP/5Wj2gTTP+4arbKvT3uSNh6GCecZ+nN22huSkuStCpaxJWdmprAhom8lDgs4mi+7rflQ5NNuXSmhgB1JbECLE8HotmKX717EaZKEdumYv9nPI116bmt3wvNFVKzDxHOWSnYL4qRFl7agVhpnkDFihqdOnB+lg4iOCyfSgvgrqcoEIQLZMgEl41RZONYHIq/0HbC0b3lM=
-  on:
-    tags: true
-    repo: jdpnielsen/contextual-error
-  skip_cleanup: 'true'
