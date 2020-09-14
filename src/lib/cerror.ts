@@ -70,7 +70,11 @@ export class CError extends Error {
 		}
 
 		if (cause) {
-			this.cause = cause;
+			Object.defineProperty(this, 'cause', {
+				value: cause,
+				enumerable: false,
+			});
+
 			if (!options?.skipCauseMessage) {
 				this.message += `: ${cause.message}`;
 			}
