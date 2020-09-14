@@ -106,8 +106,8 @@ export class CError extends Error {
 	}
 
 	public static cause(err: CError | Error): CError | Error | null {
-		if (err instanceof CError && err.cause) {
-			return err.cause;
+		if ((err as CError).cause) {
+			return (err as CError).cause as CError | Error;
 		} else {
 			return null;
 		}
