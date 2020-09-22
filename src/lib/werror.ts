@@ -14,7 +14,7 @@ export class WError extends CError {
 		}
 	}
 
-	public static isWError(obj: unknown): boolean {
+	public static isWError(obj: unknown): obj is WError {
 		return (obj as { [WERROR_SYMBOL]?: boolean })?.[WERROR_SYMBOL] != null;
 	}
 }

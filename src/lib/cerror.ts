@@ -106,7 +106,7 @@ export class CError extends Error {
 		};
 	}
 
-	public static isCError(obj: unknown): boolean {
+	public static isCError(obj: unknown): obj is CError {
 		return (obj as {[CERROR_SYMBOL]?: boolean})?.[CERROR_SYMBOL] != null;
 	}
 
