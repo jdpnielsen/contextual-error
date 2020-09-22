@@ -108,6 +108,15 @@ test('should JSON.stringify correctly', t => {
 	t.is(JSON.stringify(childError), '{"error":"CError","message":"ChildError"}');
 });
 
+test('should have a static .isCError method which returns true when given a CError', t => {
+	const regularError = new Error('regularError');
+	const cError = new CError('cError');
+
+	t.is(CError.isCError(null), false, 'handles null');
+	t.is(CError.isCError(regularError), false, 'handles Error');
+	t.is(CError.isCError(cError), true, 'handles CError');
+});
+
 test('should have a static .cause which returns the expected cause', t => {
 	const parentError = new Error('ParentError');
 	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });

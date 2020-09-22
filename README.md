@@ -258,6 +258,13 @@ functions on the `CError` module.  They're defined this way rather than using
 methods on CError instances so that they can be used on Errors not created with
 `CError`.
 
+### `CError.isCError(err)`
+
+The `isCError()` function returns a boolean, if the provided error is an instance
+of CError or an instance of a class which inherited from CError. Under the hood,
+the method uses a Symbol for checking, rather than `err instanceof CError`. This
+allows compatability between versions of this library.
+
 ### `CError.cause(err)`
 
 The `cause()` function returns the next Error in the cause chain for `err`, or

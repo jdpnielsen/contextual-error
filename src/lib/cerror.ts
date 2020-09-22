@@ -30,10 +30,11 @@ export interface Options {
 	constructorOpt?: Function;
 }
 
+export const CERROR_SYMBOL = Symbol.for('contextual-error/cerror');
+
 export class CError extends Error {
 	public readonly name: string = 'CError';
 	public readonly message!: string;
-
 	public readonly info: Info = {};
 
 	/**
@@ -48,9 +49,9 @@ export class CError extends Error {
 	 */
 	private readonly cause?: Error | CError;
 
-
 	constructor(message?: string, cause?: Error, options?: Options) {
 		super(message);
+		Object.defineProperty(this, CERROR_SYMBOL, { value: true });
 		this.shortMessage = this.message;
 
 		if (options?.info) {
@@ -103,6 +104,10 @@ export class CError extends Error {
 			error: this.name,
 			message: this.shortMessage,
 		};
+	}
+
+	public static isCError(obj: unknown): boolean {
+		return (obj as {[CERROR_SYMBOL]?: boolean})?.[CERROR_SYMBOL] != null;
 	}
 
 	public static cause(err: CError | Error): CError | Error | null {

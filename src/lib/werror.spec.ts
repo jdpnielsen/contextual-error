@@ -109,6 +109,27 @@ test('should JSON.stringify correctly', t => {
 	t.is(JSON.stringify(childError), '{"error":"WError","message":"ChildError"}');
 });
 
+test('should have a static .isCError method which returns true when given a CError', t => {
+	const regularError = new Error('RegularError');
+	const cError = new CError('CError');
+	const wError = new WError('WError');
+
+	t.is(WError.isCError(regularError), false, 'handles Error');
+	t.is(WError.isCError(cError), true, 'handles CError');
+	t.is(WError.isCError(wError), true, 'handles WError');
+});
+
+test('should have a static .isWError method which returns true when given a WError', t => {
+	const regularError = new Error('RegularError');
+	const cError = new CError('CError');
+	const wError = new WError('WError');
+
+	t.is(WError.isWError(null), false, 'handles null');
+	t.is(WError.isWError(regularError), false, 'handles Error');
+	t.is(WError.isWError(cError), false, 'handles CError');
+	t.is(WError.isWError(wError), true, 'handles WError');
+});
+
 test('should have a static .cause which returns the expected cause', t => {
 	const parentError = new Error('ParentError');
 	const childError = new WError('ChildError', parentError, { info: { foo: 'bar' } });
