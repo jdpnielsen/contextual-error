@@ -1,6 +1,6 @@
 {
 	"name": "@jdpnielsen/contextual-error",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Extended error supporting cause and contextual enhancements",
 	"main": "build/main/index.js",
 	"typings": "build/main/index.d.ts",
