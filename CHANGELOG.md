@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/jdpnielsen/contextual-error/compare/v1.0.5...v1.1.0) (2020-09-22)
+
+
+### Features
+
+* implement isCError & isWError methods ([62b52ea](https://github.com/jdpnielsen/contextual-error/commit/62b52eafac19fcc397d8e623ad0e1ca2cb99cf33))
+
 ### [1.0.5](https://github.com/jdpnielsen/contextual-error/compare/v1.0.4...v1.0.5) (2020-09-14)
 
 
