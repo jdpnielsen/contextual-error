@@ -43,7 +43,6 @@
 	"engines": {
 		"node": ">=14.3"
 	},
-	"dependencies": {},
 	"devDependencies": {
 		"@bitjson/npm-scripts-info": "^1.0.0",
 		"@istanbuljs/nyc-config-typescript": "^1.0.1",
