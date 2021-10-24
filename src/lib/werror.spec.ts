@@ -183,3 +183,15 @@ test('should have a static .hasCauseWithName', t => {
 	t.is(WError.hasCauseWithName(grandChildError, 'CustomErrorName'), true, 'finds CustomError');
 	t.is(WError.hasCauseWithName(grandChildError, 'NoName'), false, 'does not find NoName');
 });
+
+test('should disallow setting skipCauseMessage', t => {
+	const parentError = new CError('ParentError');
+	const childError = new CError('ChildError', parentError);
+	const grandChildError = new WError('GrandChildError', childError, { skipCauseMessage: false });
+
+	t.is(grandChildError.message, `GrandChildError`, 'builds correct message');
+	t.is((grandChildError as any).cause, childError, 'has expected cause');
+
+	t.is((grandChildError as any).cause.message, `ChildError: ParentError`, 'builds correct message');
+	t.is((grandChildError as any).cause.cause, parentError, 'has expected cause');
+});

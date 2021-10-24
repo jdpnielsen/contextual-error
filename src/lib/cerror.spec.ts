@@ -125,6 +125,15 @@ test('should have a static .cause which returns the expected cause', t => {
 	t.is(CError.cause(childError), parentError, 'returns cause');
 });
 
+test('should have a .getInfo method returns the info object', t => {
+	const parentError = new Error('ParentError');
+	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });
+	const grandChildError = new CError('GrandChildError', childError, { info: { bar: 'baz' } });
+
+	t.deepEqual(childError.getInfo(), { foo: 'bar' }, 'returns info');
+	t.deepEqual(grandChildError.getInfo(), { foo: 'bar', bar: 'baz' }, 'returns merged info objects');
+});
+
 test('should have a static .info which returns the info object', t => {
 	const parentError = new Error('ParentError');
 	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });
@@ -133,6 +142,19 @@ test('should have a static .info which returns the info object', t => {
 	t.deepEqual(CError.info(parentError), {}, 'handles regular errors');
 	t.deepEqual(CError.info(childError), { foo: 'bar' }, 'returns info');
 	t.deepEqual(CError.info(grandChildError), { foo: 'bar', bar: 'baz' }, 'returns merged info objects');
+});
+
+test('should have a .fullStack method which returns the combined stack trace', t => {
+	const parentError = new Error('ParentError');
+	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });
+	const grandChildError = new CError('GrandChildError', childError, { info: { bar: 'baz' } });
+
+	const expectedParentStack = helperStack('ParentError', 'Error');
+	const expectedChildStack = helperStack('ChildError: ParentError', 'CError') + '\ncaused by: ' + expectedParentStack;
+	const expectedGrandChildStack = helperStack('GrandChildError: ChildError: ParentError', 'CError') + '\ncaused by: ' + expectedChildStack;
+
+	t.is(cleanStack(childError.fullStack()), expectedChildStack, 'builds childError stack');
+	t.is(cleanStack(grandChildError.fullStack()), expectedGrandChildStack, 'builds grandChildError stack');
 });
 
 test('should have a static .fullStack which returns the combined stack trace', t => {
@@ -149,6 +171,16 @@ test('should have a static .fullStack which returns the combined stack trace', t
 	t.is(cleanStack(CError.fullStack(grandChildError)), expectedGrandChildStack, 'builds grandChildError stack');
 });
 
+test('should have a .findCauseByName method', t => {
+	const parentError = new Error('ParentError');
+	const childError = new CError('ChildError', parentError);
+	const grandChildError = new CError('GrandChildError', childError, { name: 'CustomErrorName' });
+
+	t.is(grandChildError.findCauseByName('CError'), childError, 'finds CError');
+	t.is(grandChildError.findCauseByName('CustomErrorName'), grandChildError, 'finds CustomError');
+	t.is(grandChildError.findCauseByName('NoName'), null, 'does not find NoName');
+});
+
 test('should have a static .findCauseByName', t => {
 	const parentError = new Error('ParentError');
 	const childError = new CError('ChildError', parentError);
@@ -158,6 +190,16 @@ test('should have a static .findCauseByName', t => {
 	t.is(CError.findCauseByName(grandChildError, 'CError'), childError, 'finds CError');
 	t.is(CError.findCauseByName(grandChildError, 'CustomErrorName'), grandChildError, 'finds CustomError');
 	t.is(CError.findCauseByName(grandChildError, 'NoName'), null, 'does not find NoName');
+});
+
+test('should have a .hasCauseWithName method', t => {
+	const parentError = new Error('ParentError');
+	const childError = new CError('ChildError', parentError);
+	const grandChildError = new CError('GrandChildError', childError, { name: 'CustomErrorName' });
+
+	t.is(grandChildError.hasCauseWithName('CError'), true, 'finds CError');
+	t.is(grandChildError.hasCauseWithName('CustomErrorName'), true, 'finds CustomError');
+	t.is(grandChildError.hasCauseWithName('NoName'), false, 'does not find NoName');
 });
 
 test('should have a static .hasCauseWithName', t => {

@@ -34,7 +34,8 @@ export const CERROR_SYMBOL = Symbol.for('contextual-error/cerror');
 
 export class CError extends Error {
 	public readonly name: string = 'CError';
-	public readonly message!: string;
+	public message!: string;
+	public readonly stack!: string;
 	public readonly info: Info = {};
 
 	/**
@@ -118,7 +119,31 @@ export class CError extends Error {
 		}
 	}
 
+	public getInfo(): Info {
+		const cause = CError.cause(this);
+		let info: Info;
+
+		if (cause !== null) {
+			info = CError.info(cause);
+		} else {
+			info = {};
+		}
+
+		// Sorta messy duck-type check of err.info for info object merging
+		if (typeof (this.info) == 'object' && this.info !== null) {
+			for (const k in this.info) {
+				info[k] = this.info[k];
+			}
+		}
+
+		return info;
+	}
+
 	public static info(err: CError | Error): Info {
+		if (CError.isCError(err)) {
+			return err.getInfo();
+		}
+
 		const cause = CError.cause(err);
 		let info: Info;
 
@@ -141,19 +166,47 @@ export class CError extends Error {
 	/**
 	 * Returns a string containing the full stack trace, with all nested errors recursively reported as 'caused by:' + err.stack.
 	 */
+	public fullStack(): string {
+		if (this.cause) {
+			return this.stack + '\ncaused by: ' + CError.fullStack(this.cause);
+		}
+
+		return this.stack;
+	}
+
+	/**
+	 * Returns a string containing the full stack trace, with all nested errors recursively reported as 'caused by:' + err.stack.
+	 */
 	public static fullStack(err: CError | Error): string {
 		const cause = CError.cause(err);
 
 		if (cause) {
-			return (err.stack + '\ncaused by: ' + CError.fullStack(cause));
+			const fullstack = (cause as CError).fullStack ? (cause as CError).fullStack() : CError.fullStack(cause);
+			return err.stack + '\ncaused by: ' + fullstack;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return err.stack!;
 	}
 
+	public findCauseByName(name: string): CError | Error | null {
+		let cause: CError | Error | null;
+
+		for (cause = this; cause !== null; cause = CError.cause(cause)) {
+			if (cause.name == name) {
+				return cause;
+			}
+		}
+
+		return null;
+	}
+
 	public static findCauseByName(err: CError | Error, name: string): CError | Error | null {
 		let cause: CError | Error | null;
+
+		if (CError.isCError(err)) {
+			return err.findCauseByName(name);
+		}
 
 		for (cause = err; cause !== null; cause = CError.cause(cause)) {
 			if (cause.name == name) {
@@ -162,6 +215,14 @@ export class CError extends Error {
 		}
 
 		return null;
+	}
+
+	public hasCauseWithName(name: string): boolean {
+		if (CError.isCError(this)) {
+			return this.findCauseByName(name) !== null;
+		}
+
+		return CError.findCauseByName(this, name) !== null;
 	}
 
 	public static hasCauseWithName(err: CError | Error, name: string): boolean {
