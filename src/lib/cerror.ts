@@ -2,6 +2,11 @@ export type Info = Record<string | number | symbol, unknown>
 
 export interface Options {
 	/**
+	 * Indicates that the new error was caused by some other error
+	 */
+	cause?: Error | CError | unknown;
+
+	/**
 	 * Specifies arbitrary informational properties that are available through the
 	 * `ContextualError.info(err)` static class method. See that method for details.
 	 */
@@ -34,7 +39,6 @@ export const CERROR_SYMBOL = Symbol.for('contextual-error/cerror');
 
 export class CError extends Error {
 	public readonly name: string = 'CError';
-	public readonly message!: string;
 	public readonly info: Info = {};
 
 	/**
@@ -44,13 +48,9 @@ export class CError extends Error {
 	 */
 	public readonly shortMessage: string;
 
-	/**
-	 * Indicates that the new error was caused by some other error
-	 */
-	private readonly cause?: Error | CError;
+	constructor(message?: string, options?: Options) {
+		super(message, { cause: options?.cause });
 
-	constructor(message?: string, cause?: Error, options?: Options) {
-		super(message);
 		Object.defineProperty(this, CERROR_SYMBOL, { value: true });
 		this.shortMessage = this.message;
 
@@ -70,14 +70,9 @@ export class CError extends Error {
 			this.name = options.name;
 		}
 
-		if (cause) {
-			Object.defineProperty(this, 'cause', {
-				value: cause,
-				enumerable: false,
-			});
-
-			if (!options?.skipCauseMessage) {
-				this.message += `: ${cause.message}`;
+		if (options?.cause) {
+			if (!options.skipCauseMessage && typeof (options.cause as Error)?.message === 'string') {
+				this.message += `: ${(options.cause as Error).message}`;
 			}
 		}
 
@@ -110,7 +105,7 @@ export class CError extends Error {
 		return (obj as {[CERROR_SYMBOL]?: boolean})?.[CERROR_SYMBOL] != null;
 	}
 
-	public static cause(err: CError | Error): CError | Error | null {
+	public static getCause(err: CError | Error): CError | Error | null {
 		if ((err as CError).cause) {
 			return (err as CError).cause as CError | Error;
 		} else {
@@ -119,7 +114,7 @@ export class CError extends Error {
 	}
 
 	public static info(err: CError | Error): Info {
-		const cause = CError.cause(err);
+		const cause = CError.getCause(err);
 		let info: Info;
 
 		if (cause !== null) {
@@ -142,7 +137,7 @@ export class CError extends Error {
 	 * Returns a string containing the full stack trace, with all nested errors recursively reported as 'caused by:' + err.stack.
 	 */
 	public static fullStack(err: CError | Error): string {
-		const cause = CError.cause(err);
+		const cause = CError.getCause(err);
 
 		if (cause) {
 			return (err.stack + '\ncaused by: ' + CError.fullStack(cause));
@@ -155,7 +150,7 @@ export class CError extends Error {
 	public static findCauseByName(err: CError | Error, name: string): CError | Error | null {
 		let cause: CError | Error | null;
 
-		for (cause = err; cause !== null; cause = CError.cause(cause)) {
+		for (cause = err; cause !== null; cause = CError.getCause(cause)) {
 			if (cause.name == name) {
 				return cause;
 			}
