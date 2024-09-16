@@ -26,7 +26,7 @@ function helperStack(message: string, name = 'WError') {
 	const nodestack = new Error().stack!.split('\n').slice(2).join('\n');
 
 	return [
-		`${name}: ${message}`,
+		message ? `${name}: ${message}` : name,
 		cleanStack(nodestack),
 	].join('\n');
 }
@@ -52,7 +52,7 @@ test('should handle no input', t => {
 
 test('should accept an Error as cause', t => {
 	const parentError = new Error('ParentError');
-	const childError = new WError('ChildError', parentError);
+	const childError = new WError('ChildError', { cause: parentError });
 
 	t.is(childError.message, `ChildError`, 'builds correct message');
 	t.is((childError as any).cause, parentError, 'has expected cause');
@@ -60,15 +60,15 @@ test('should accept an Error as cause', t => {
 
 test('should accept a CError as cause', t => {
 	const parentError = new CError('ParentError');
-	const childError = new WError('ChildError', parentError);
+	const childError = new WError('ChildError', { cause: parentError });
 
 	t.is(childError.message, `ChildError`, 'builds correct message');
 	t.is((childError as any).cause, parentError, 'has expected cause');
 });
 
 test('should accept an options object', t => {
-	const uncausedErr = new CError('uncausedErr', undefined, { info: { text: '_uncausedErr_', fromUncaused: true }, name: 'UncausedError' });
-	const causedErr = new WError('causedErr', uncausedErr, { info: { text: '_causedErr_', fromCaused: true }, name: 'CausedError' });
+	const uncausedErr = new CError('uncausedErr', { info: { text: '_uncausedErr_', fromUncaused: true }, name: 'UncausedError' });
+	const causedErr = new WError('causedErr', { cause: uncausedErr, info: { text: '_causedErr_', fromCaused: true }, name: 'CausedError' });
 
 	t.is(uncausedErr.name, `UncausedError`, 'sets correct name');
 	t.is(causedErr.name, `CausedError`, 'sets correct name');
@@ -85,8 +85,8 @@ test('should accept an options object', t => {
 
 test('should handle multiple nestings of causes', t => {
 	const parentError = new CError('ParentError');
-	const childError = new CError('ChildError', parentError);
-	const grandChildError = new WError('GrandChildError', childError);
+	const childError = new CError('ChildError', { cause: parentError });
+	const grandChildError = new WError('GrandChildError', { cause: childError });
 
 	t.is(grandChildError.message, `GrandChildError`, 'builds correct message');
 	t.is((grandChildError as any).cause, childError, 'has expected cause');
@@ -97,14 +97,14 @@ test('should handle multiple nestings of causes', t => {
 
 test('should stringify correctly', t => {
 	const parentError = new CError('ParentError');
-	const childError = new WError('ChildError', parentError, { info: { foo: 'bar' }});
+	const childError = new WError('ChildError', { cause: parentError, info: { foo: 'bar' }});
 
 	t.is(childError.toString(), 'WError: ChildError');
 });
 
 test('should JSON.stringify correctly', t => {
 	const parentError = new CError('ParentError');
-	const childError = new WError('ChildError', parentError, { info: { foo: 'bar' } });
+	const childError = new WError('ChildError', { cause: parentError, info: { foo: 'bar' } });
 
 	t.is(JSON.stringify(childError), '{"error":"WError","message":"ChildError"}');
 });
@@ -132,16 +132,16 @@ test('should have a static .isWError method which returns true when given a WErr
 
 test('should have a static .cause which returns the expected cause', t => {
 	const parentError = new Error('ParentError');
-	const childError = new WError('ChildError', parentError, { info: { foo: 'bar' } });
+	const childError = new WError('ChildError', { cause: parentError, info: { foo: 'bar' } });
 
-	t.is(WError.cause(parentError), null, 'handles regular errors');
-	t.is(WError.cause(childError), parentError, 'returns cause');
+	t.is(WError.getCause(parentError), null, 'handles regular errors');
+	t.is(WError.getCause(childError), parentError, 'returns cause');
 });
 
 test('should have a static .info which returns the info object', t => {
 	const parentError = new Error('ParentError');
-	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });
-	const grandChildError = new WError('GrandChildError', childError, { info: { bar: 'baz' } });
+	const childError = new CError('ChildError', { cause: parentError, info: { foo: 'bar' } });
+	const grandChildError = new WError('GrandChildError', { cause: childError, info: { bar: 'baz' } });
 
 	t.deepEqual(WError.info(parentError), {}, 'handles regular errors');
 	t.deepEqual(WError.info(childError), { foo: 'bar' }, 'returns info');
@@ -150,8 +150,8 @@ test('should have a static .info which returns the info object', t => {
 
 test('should have a static .fullStack which returns the combined stack trace', t => {
 	const parentError = new Error('ParentError');
-	const childError = new CError('ChildError', parentError, { info: { foo: 'bar' } });
-	const grandChildError = new WError('GrandChildError', childError, { info: { bar: 'baz' } });
+	const childError = new CError('ChildError', { cause: parentError, info: { foo: 'bar' } });
+	const grandChildError = new WError('GrandChildError', { cause: childError, info: { bar: 'baz' } });
 
 	const expectedParentStack = helperStack('ParentError', 'Error');
 	const expectedChildStack = helperStack('ChildError: ParentError', 'CError') + '\ncaused by: ' + expectedParentStack;
@@ -164,8 +164,8 @@ test('should have a static .fullStack which returns the combined stack trace', t
 
 test('should have a static .findCauseByName', t => {
 	const parentError = new Error('ParentError');
-	const childError = new CError('ChildError', parentError);
-	const grandChildError = new WError('GrandChildError', childError, { name: 'CustomErrorName' });
+	const childError = new CError('ChildError', { cause: parentError });
+	const grandChildError = new WError('GrandChildError', { cause: childError, name: 'CustomErrorName' });
 
 	t.is(WError.findCauseByName(grandChildError, 'Error'), parentError, 'finds regular Error');
 	t.is(WError.findCauseByName(grandChildError, 'CError'), childError, 'finds CError');
@@ -175,8 +175,8 @@ test('should have a static .findCauseByName', t => {
 
 test('should have a static .hasCauseWithName', t => {
 	const parentError = new Error('ParentError');
-	const childError = new CError('ChildError', parentError);
-	const grandChildError = new WError('GrandChildError', childError, { name: 'CustomErrorName' });
+	const childError = new CError('ChildError', { cause: parentError });
+	const grandChildError = new WError('GrandChildError', { cause: childError, name: 'CustomErrorName' });
 
 	t.is(WError.hasCauseWithName(grandChildError, 'Error'), true, 'finds regular Error');
 	t.is(WError.hasCauseWithName(grandChildError, 'CError'), true, 'finds CError');

@@ -5,8 +5,8 @@ export const WERROR_SYMBOL = Symbol.for('contextual-error/werror');
 export class WError extends CError {
 	public readonly name: string = 'WError';
 
-	constructor(message?: string, cause?: Error, options?: Options) {
-		super(message, cause, Object.assign(options || {}, { skipCauseMessage: true }));
+	constructor(message?: string, options?: Options) {
+		super(message, Object.assign(options || {}, { skipCauseMessage: true }));
 		Object.defineProperty(this, WERROR_SYMBOL, { value: true });
 
 		if (options?.name) {

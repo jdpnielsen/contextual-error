@@ -54,7 +54,7 @@ var filename = '/nonexistent';
 try {
   const stats = await fs.stat(filename); 
 } catch (err1) {
-	var err2 = new CError(`stat "${filename}"`, err1);
+	var err2 = new CError(`stat "${filename}"`, { cause: err1 });
 	console.error(err2.message);
 }
 
@@ -87,8 +87,8 @@ kind of Error:
 
 ```typescript
 const err1 = new Error('No such file or directory');
-const err2 = new CError(`failed to stat ${filename}`, err1);
-const err3 = new CError('request failed', err2);
+const err2 = new CError(`failed to stat ${filename}`, { cause: err1 });
+const err3 = new CError('request failed', { cause: err2 });
 console.error(err3.message);
 ```
 
@@ -216,10 +216,10 @@ support first-class causes, informational properties and other useful features.
 
 ## Constructors
 
-The CError constructor takes 3 optional arguments:
+The CError constructor takes 2 optional arguments:
 
 ```typescript
-new CError(message, cause, options)
+new CError(message, options)
 ```
 
 All of these forms construct a new CError that behaves just like the built-in
@@ -230,7 +230,8 @@ optional properties:
 
 Option name      | Type             | Meaning
 ---------------- | ---------------- | -------
-`name`           | string           | Describes what kind of error this is.  This is intended for programmatic use to distinguish between different kinds of errors.  Note that in modern versions of Node.js, this name is ignored in the `stack` property value, but callers can still use the `name` property to get at it.
+`cause`          | Error            | Idicates the specific original cause of the error. See [mdn web docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause)
+`name`           | string           | Describes what kind of error this is.  This is intended for programmatic use to distinguish between different kinds of errors.  Note that in modern versions of Node.js, this name is ignored in the `stack` property value, but callers can still use the `name` property to get at it. See [mdn web docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name)
 `info`           | object           | Specifies arbitrary informational properties that are available through the `CError.info(err)` static class method.  See that method for details.
 
 The `WError` constructor is used exactly the same way as the `CError`
@@ -244,6 +245,7 @@ JavaScript's built-in Error objects.
 Property name | Type   | Meaning
 ------------- | ------ | -------
 `name`        | string | Programmatically-usable name of the error.
+`cause`       | Error? | original cause of the error
 `message`     | string | Human-readable summary of the failure.  Programmatically-accessible details are provided through `CError.info(err)` class method.
 `stack`       | string | Human-readable stack trace where the Error was constructed.
 
@@ -265,12 +267,12 @@ of CError or an instance of a class which inherited from CError. Under the hood,
 the method uses a Symbol for checking, rather than `err instanceof CError`. This
 allows compatability between versions of this library.
 
-### `CError.cause(err)`
+### `CError.getCause(err)`
 
-The `cause()` function returns the next Error in the cause chain for `err`, or
+The `getCause()` function returns the next Error in the cause chain for `err`, or
 `null` if there is no next error.  See the `cause` argument to the constructor.
 Errors can have arbitrarily long cause chains.  You can walk the `cause` chain
-by invoking `CError.cause(err)` on each subsequent return value.  If `err` is
+by invoking `CError.getCause(err)` on each subsequent return value.  If `err` is
 not a `CError`, the cause is `null`.
 
 ### `CError.info(err)`
@@ -319,7 +321,8 @@ case:
 ```typescript
 const err1 = new CError('something bad happened');
 /* ... */
-const err2 = new CError( `failed to connect to "${ip}:${port}"`, err1, {
+const err2 = new CError( `failed to connect to "${ip}:${port}"`, {
+  'cause': err1,
   'name': 'ConnectionError',
   'info': {
       'errno': 'ECONNREFUSED',
@@ -354,7 +357,8 @@ of the chain overriding same-named values lower in the chain. To continue that
 example:
 
 ```typescript
-const err3 = new CError('request failed', err2, {
+const err3 = new CError('request failed', {
+  'cause': err2,
   'name': 'RequestError',
   'info': {
       'errno': 'EBADREQUEST'
@@ -388,7 +392,7 @@ You can also print the complete stack trace of combined `Error`s by using
 ```typescript
 var err1 = new CError('something bad happened');
 /* ... */
-var err2 = new CError('something really bad happened here', err1);
+var err2 = new CError('something really bad happened here', { cause: err1 });
 
 console.log(CError.fullStack(err2));
 ```
