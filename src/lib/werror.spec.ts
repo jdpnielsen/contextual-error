@@ -10,7 +10,7 @@ import WError from './werror';
  * compare against "known-good" output.
  */
 function cleanStack(stacktxt: string) {
-	const re = new RegExp(/\/.*\/.*spec\.ts:\d+:\d+/, 'gm');
+	const re = new RegExp(/\/.*\/.*spec\.(ts|js):\d+:\d+/, 'gm');
 	stacktxt = stacktxt.replace(re, '(dummy filename)');
 	return stacktxt;
 }
