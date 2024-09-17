@@ -1,6 +1,25 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [2.0.0-0](https://github.com/jdpnielsen/contextual-error/compare/v1.2.3...v2.0.0-0) (2024-09-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* CError's static .cause() method was changed to .getCause(). Constructor
+arguments were consolidated, so there are now two optional arguments
+instead.
+* Target ES version is now ES2022
+
+### deps
+
+* update typescript to v5 & node to v22 ([3dc28bc](https://github.com/jdpnielsen/contextual-error/commit/3dc28bc05438d4c63fb5e17b2dd698e45b6ebfdf))
+
+
+### Features
+
+* Reuse native javascript cause property ([67575a8](https://github.com/jdpnielsen/contextual-error/commit/67575a87ab7ff3d7470b2dff925800323bc24982))
 
 ### [1.2.3](https://github.com/jdpnielsen/contextual-error/compare/v1.2.2...v1.2.3) (2021-05-27)
 
