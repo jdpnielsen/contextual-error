@@ -1,6 +1,6 @@
 # Contextual Error: Rich errors in Typescript with causes
 
-[![Build Status](https://travis-ci.org/jdpnielsen/contextual-error.svg?branch=master)](https://travis-ci.org/jdpnielsen/contextual-error)
+![NPM Version](https://img.shields.io/npm/v/%40jdpnielsen%2Fcontextual-error)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 The Contextual Error module is a rewrite of Joyent's excellent [verror](https://github.com/joyent/node-verror) in Typescript. The port is _not exactly_ a drop in replacement, as several features has been dropped, while others have been added.
